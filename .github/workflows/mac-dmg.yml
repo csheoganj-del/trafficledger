@@ -1,0 +1,26 @@
+name: Mac DMG
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  dmg:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Build Apple silicon DMG
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npm run dist:mac
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TrafficLedger-1.0.0-AppleSilicon
+          path: dist/TrafficLedger-1.0.0-AppleSilicon.dmg
+          if-no-files-found: error

@@ -1,0 +1,84 @@
+{
+  "name": "trafficledger",
+  "productName": "TrafficLedger",
+  "version": "1.0.0",
+  "description": "A quiet, native ledger of your computer's network activity.",
+  "homepage": "https://mansinghgurjar.in/software/traffic-ledger",
+  "main": "src/main.js",
+  "author": "Gurjar",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac dmg"
+  },
+  "build": {
+    "appId": "com.falakmeter.app",
+    "productName": "TrafficLedger",
+    "copyright": "Copyright © Gurjar · mansinghgurjar.in",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "build/icon.png",
+      "build/icon.icns"
+    ],
+    "extraMetadata": {
+      "main": "src/main.js"
+    },
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        },
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "portable": {
+      "artifactName": "TrafficLedger-1.0.0-Windows.exe"
+    },
+    "nsis": {
+      "artifactName": "TrafficLedger-1.0.0-Setup.exe",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    },
+    "mac": {
+      "icon": "build/icon.icns",
+      "category": "public.app-category.utilities",
+      "minimumSystemVersion": "14.0",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["arm64"]
+        }
+      ],
+      "extendInfo": {
+        "LSUIElement": true,
+        "NSHighResolutionCapable": true
+      },
+      "artifactName": "TrafficLedger-1.0.0-AppleSilicon.dmg"
+    },
+    "dmg": {
+      "title": "TrafficLedger",
+      "contents": [
+        { "x": 160, "y": 180, "type": "file" },
+        { "x": 420, "y": 180, "type": "link", "path": "/Applications" }
+      ]
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  }
+}

@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>TrafficLedger</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="mark"><i></i> TrafficLedger</div>
+    <nav>
+      <button data-view="live" class="active">Live</button>
+      <button data-view="history">History</button>
+      <button data-view="settings">Settings</button>
+    </nav>
+  </header>
+
+  <section class="view on" id="live">
+    <div class="kicker" id="license-chip">TRIAL</div>
+    <div class="hero-rates">
+      <div><b id="down">—</b> <span>download</span></div>
+      <div><b id="up">—</b> <span>upload</span></div>
+    </div>
+    <div class="spark"><svg viewBox="0 0 240 110" preserveAspectRatio="none" id="spark"></svg></div>
+    <div class="grid">
+      <div class="card"><h3>Today</h3><p id="today">—</p></div>
+      <div class="card"><h3>This session</h3><p id="session">—</p></div>
+      <div class="card"><h3>Budget</h3><p id="budget">Off</p></div>
+    </div>
+    <p class="lede" style="margin-top:16px">Actual traffic through this computer, right now — not the advertised speed of the connection. VPN tunnels are skipped so the same bytes are not counted twice.</p>
+  </section>
+
+  <section class="view" id="history">
+    <div class="kicker">THE USAGE LEDGER</div>
+    <h1>A quieter record of every day.</h1>
+    <div class="bars" id="bars"></div>
+    <table>
+      <thead><tr><th>Date</th><th>Download</th><th>Upload</th></tr></thead>
+      <tbody id="days"></tbody>
+    </table>
+    <p style="margin-top:16px"><button class="btn" id="export">Export your ledger</button></p>
+  </section>
+
+  <section class="view" id="settings">
+    <div class="kicker">STARTUP &amp; APPEARANCE</div>
+    <h1>Your history stays on this computer.</h1>
+    <p class="lede">No account for your traffic data. Home, licenses and support: mansinghgurjar.in. The license server only sees a device hash and your key.</p>
+    <label class="field"><span>Monthly budget (GB, 0 = off)</span>
+      <input id="budget-in" type="number" min="0" step="1" value="0">
+    </label>
+    <button class="btn primary" id="save-budget">Save budget</button>
+    <p class="lede" id="plan-line" style="margin-top:18px"></p>
+  </section>
+  <script src="app.js"></script>
+</body>
+</html>
