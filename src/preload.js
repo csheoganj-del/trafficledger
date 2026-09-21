@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('ledger', {
   license: () => ipcRenderer.invoke('license:get'),
   activate: (key) => ipcRenderer.invoke('license:activate', key),
   buy: (payload) => ipcRenderer.invoke('license:buy', payload),
+  claim: (email) => ipcRenderer.invoke('license:claim', email),
   traffic: () => ipcRenderer.invoke('traffic:get'),
   history: () => ipcRenderer.invoke('history:get'),
   setBudget: (bytes) => ipcRenderer.invoke('history:budget', bytes),

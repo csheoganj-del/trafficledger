@@ -24,6 +24,22 @@ document.getElementById('form').addEventListener('submit', async (e) => {
   }
 });
 
+document.getElementById('claim').addEventListener('click', async () => {
+  const err = document.getElementById('err');
+  err.textContent = '';
+  const email = document.getElementById('email').value.trim();
+  if (!email || !email.includes('@')) {
+    err.textContent = 'Enter the email you paid with.';
+    return;
+  }
+  const snap = await window.ledger.claim(email);
+  if (snap.locked) {
+    err.textContent = snap.error === 'no_purchase'
+      ? 'No paid license for that email yet.'
+      : (snap.error || snap.reason || 'Could not claim');
+  }
+});
+
 document.getElementById('buy-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const err = document.getElementById('err');

@@ -69,6 +69,12 @@
       },
       "artifactName": "TrafficLedger-1.0.0-AppleSilicon.dmg"
     },
+    "protocols": [
+      {
+        "name": "TrafficLedger",
+        "schemes": ["trafficledger"]
+      }
+    ],
     "dmg": {
       "title": "TrafficLedger",
       "contents": [

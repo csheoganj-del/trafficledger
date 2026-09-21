@@ -67,6 +67,22 @@ class LicenseGuard {
     return this.snapshot();
   }
 
+  async claim(email) {
+    const env = await post('/v1/claim', {
+      email: String(email || '').trim(),
+      device_id: deviceId(),
+      device_name: deviceName(),
+      platform: process.platform === 'darwin' ? 'macos' : process.platform,
+    });
+    this.apply(env, env.license_key);
+    if (!env.ok && env.error) {
+      const err = new Error(env.error);
+      err.payload = env;
+      throw err;
+    }
+    return this.snapshot();
+  }
+
   async buy({ plan, email }) {
     const checkout = await post('/v1/checkout', {
       plan: String(plan || 'personal'),
@@ -105,6 +121,12 @@ class LicenseGuard {
   apply(env, persistKey) {
     if (env.killed) {
       this.state.killed = true;
+      this.state.lease = '';
+      this.store.write(this.state);
+      this.evaluate();
+      return;
+    }
+    if (env.error === 'trial_expired' && !this.state.licenseKey) {
       this.state.lease = '';
       this.store.write(this.state);
       this.evaluate();

@@ -11,6 +11,40 @@ const { HistoryStore } = require('./history');
 app.setName('TrafficLedger');
 app.setAppUserModelId('com.falakmeter.app');
 
+const PROTOCOL = 'trafficledger';
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient(PROTOCOL, process.execPath, [path.resolve(process.argv[1])]);
+  }
+} else {
+  app.setAsDefaultProtocolClient(PROTOCOL);
+}
+
+function extractKey(url) {
+  if (!url) return '';
+  try {
+    return new URL(url).searchParams.get('key') || '';
+  } catch (e) {
+    const m = String(url).match(/[?&]key=([^&]+)/);
+    return m ? decodeURIComponent(m[1]) : '';
+  }
+}
+
+let pendingKey = '';
+async function activateFromUrl(url) {
+  const key = extractKey(url);
+  if (!key) return;
+  if (!guard) {
+    pendingKey = key;
+    return;
+  }
+  try {
+    await guard.activate(key);
+    createWindow();
+    reloadForLicense();
+  } catch (e) { /* lock screen stays */ }
+}
+
 let mainWindow = null;
 let tray = null;
 let guard = null;
@@ -110,6 +144,16 @@ async function bootLicense() {
     await sleep(400);
   }
   guard.evaluate();
+  setInterval(() => {
+    const before = guard.decision && guard.decision.locked;
+    guard.evaluate();
+    const after = guard.decision && guard.decision.locked;
+    if (before !== after) {
+      if (after) createWindow();
+      reloadForLicense();
+      updateTray();
+    }
+  }, 60 * 1000);
   setInterval(() => { guard.refresh().then(reloadForLicense).catch(() => {}); }, cfg.REFRESH_INTERVAL_MS);
 }
 
@@ -129,11 +173,18 @@ function bootTraffic() {
   });
 }
 
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) {
+  app.quit();
+}
+
 app.whenReady().then(async () => {
-  const got = app.requestSingleInstanceLock();
-  if (!got) { app.quit(); return; }
+  if (!gotLock) return;
   await bootLicense();
   bootTraffic();
+  if (pendingKey) await activateFromUrl('trafficledger://activate?key=' + encodeURIComponent(pendingKey));
+  const launchUrl = process.argv.find((a) => String(a).startsWith('trafficledger:'));
+  if (launchUrl) await activateFromUrl(launchUrl);
   if (process.platform === 'darwin' && app.dock) app.dock.hide();
   tray = new Tray(iconImage());
   updateTray();
@@ -143,7 +194,15 @@ app.whenReady().then(async () => {
   app.setLoginItemSettings({ openAtLogin: true });
 });
 
-app.on('second-instance', () => createWindow());
+app.on('open-url', (e, url) => {
+  e.preventDefault();
+  activateFromUrl(url);
+});
+app.on('second-instance', (_e, argv) => {
+  const url = (argv || []).find((a) => String(a).startsWith('trafficledger:'));
+  if (url) activateFromUrl(url);
+  createWindow();
+});
 app.on('window-all-closed', () => {});
 app.on('before-quit', () => {
   app.isQuitting = true;
@@ -168,6 +227,15 @@ ipcMain.handle('license:buy', async (_e, payload) => {
     return snap;
   } catch (err) {
     return { locked: true, reason: err.message || 'buy_failed', error: err.message };
+  }
+});
+ipcMain.handle('license:claim', async (_e, email) => {
+  try {
+    const snap = await guard.claim(email);
+    reloadForLicense();
+    return snap;
+  } catch (err) {
+    return { locked: true, reason: err.message || 'claim_failed', error: err.message };
   }
 });
 ipcMain.handle('traffic:get', () => {
